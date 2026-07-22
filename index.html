@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Обратный отсчёт</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+    }
+    .target-date {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.9rem;
+      margin-bottom: 3rem;
+    }
+    .days-block {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 1.5rem 3rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 2rem;
+    }
+    .days-block .number {
+      font-size: 5rem;
+      font-weight: 700;
+      line-height: 1;
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-right: 0.75rem;
+    }
+    .days-block .label {
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.6);
+      align-self: flex-end;
+      padding-bottom: 0.3rem;
+    }
+    .timer {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    .time-block {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 1.5rem 2rem;
+      min-width: 120px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .time-block .number {
+      font-size: 3.5rem;
+      font-weight: 700;
+      line-height: 1;
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .time-block .label {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.6);
+      margin-top: 0.5rem;
+    }
+    .separator {
+      font-size: 3rem;
+      color: rgba(255,255,255,0.3);
+      align-self: center;
+      display: none;
+    }
+    .event-info {
+      margin-top: 3rem;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9rem;
+    }
+    .event-info span {
+      color: #f5576c;
+    }
+    @media (min-width: 600px) {
+      .separator { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>До пенсии осталось</h1>
+    <p class="target-date">11 октября 2029</p>
+    <div class="days-block">
+      <div class="number" id="days">00</div>
+      <div class="label" id="days-label">дней</div>
+    </div>
+    <div class="timer" id="timer">
+      <div class="time-block">
+        <div class="number" id="hours">00</div>
+        <div class="label" id="hours-label">Часов</div>
+      </div>
+      <div class="separator">:</div>
+      <div class="time-block">
+        <div class="number" id="minutes">00</div>
+        <div class="label" id="minutes-label">Минут</div>
+      </div>
+      <div class="separator">:</div>
+      <div class="time-block">
+        <div class="number" id="seconds">00</div>
+        <div class="label" id="seconds-label">Секунд</div>
+      </div>
+    </div>
+    <p class="event-info" id="event-info">Специально для: <span id="event-name">Т.....га И. А.</span></p>
+  </div>
+
+  <script>
+    function pluralize(n, forms) {
+      const mod10 = n % 10;
+      const mod100 = n % 100;
+      if (mod10 === 1 && mod100 !== 11) return forms[0];
+      if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return forms[1];
+      return forms[2];
+    }
+
+    // ─── НАСТРОЙКИ ───────────────────────────────────────────────
+    const TARGET_DATE = new Date('2029-10-11T00:00:00');
+    const EVENT_NAME = 'Т.....га И. А.';
+    // ──────────────────────────────────────────────────────────────
+
+    function updateTimer() {
+      const now = new Date();
+      const diff = TARGET_DATE - now;
+
+      if (diff <= 0) {
+        document.getElementById('days').textContent = '00';
+        document.getElementById('hours').textContent = '00';
+        document.getElementById('minutes').textContent = '00';
+        document.getElementById('seconds').textContent = '00';
+        document.getElementById('event-name').textContent = EVENT_NAME + ' 🎉';
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      document.getElementById('days').textContent = String(days).padStart(2, '0');
+      document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+      document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+      document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+      document.getElementById('days-label').textContent = pluralize(days, ['день', 'дня', 'дней']);
+      document.getElementById('hours-label').textContent = pluralize(hours, ['час', 'часа', 'часов']);
+      document.getElementById('minutes-label').textContent = pluralize(minutes, ['минута', 'минуты', 'минут']);
+      document.getElementById('seconds-label').textContent = pluralize(seconds, ['секунда', 'секунды', 'секунд']);
+      document.getElementById('event-name').textContent = EVENT_NAME;
+    }
+
+    document.getElementById('event-name').textContent = EVENT_NAME;
+    updateTimer();
+    setInterval(updateTimer, 1000);
+  </script>
+</body>
+</html>
